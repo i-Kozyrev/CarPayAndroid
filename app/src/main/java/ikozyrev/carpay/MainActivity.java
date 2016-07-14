@@ -21,22 +21,25 @@ import java.util.Calendar;
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
 
-    final String FIRST_RUN_FLAG = "car_pay_first_run_flag";
+    public static final String FIRST_RUN_FLAG = "car_pay_first_run_flag";
     //final int MAX_VALUE_NUMBER_PICKER = 20;
     //final int MIN_VALUE_NUMBER_PICKER = 0;
 
-    SharedPreferences sPref;
-    DBHelper dbHelper;
-    SQLiteDatabase database;
-    Toolbar toolbar;
-    NumberPicker freeDayNumberPicker;
-    TextView deptTextView;
-    TextView freeDayTextView;
-    Calendar lastPayDate;
-    CalcDept calc;
-    Calendar tempLastPayDate;
-    int lastPayId;
-    Button payButton;
+    SharedPreferences mSPref;
+    DBHelper mDBHelper;
+    SQLiteDatabase mDatabase;
+
+    Button mPayButton;
+    Toolbar mToolbar;
+    NumberPicker mFreeDayNumberPicker;
+    TextView mDeptTextView;
+    TextView mFreeDayTextView;
+
+    Calendar mLastPayDate;
+    CalcDept mCalc;
+    Calendar mTempLastPayDate;
+    int mLastPayId;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -45,29 +48,29 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         findViewsById();
 
-        setSupportActionBar(toolbar);
+        setSupportActionBar(mToolbar);
 
-        sPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
-        boolean firstRunFlag = sPref.getBoolean(FIRST_RUN_FLAG, false);
-        Log.e("MAIN ACT FLAG: ", "" + sPref.getBoolean(FIRST_RUN_FLAG, false));
+        mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+        boolean firstRunFlag = mSPref.getBoolean(FIRST_RUN_FLAG, false);
+        Log.e("MAIN ACT FLAG: ", "" + mSPref.getBoolean(FIRST_RUN_FLAG, false));
         if (!firstRunFlag) {
             Intent intent = new Intent(this, FirstStartAppActivity.class);
             startActivity(intent);
         }
 
-        dbHelper = new DBHelper(this);
-        database = dbHelper.getWritableDatabase();
-        lastPayDate = getLastPayDate();
-        tempLastPayDate = getLastPayDate();
+        mDBHelper = new DBHelper(this);
+        mDatabase = mDBHelper.getWritableDatabase();
+        mLastPayDate = getmLastPayDate();
+        mTempLastPayDate = getmLastPayDate();
         int maxNumberPickerValue = getMaxFreeDay();
 
-        payButton.setOnClickListener(this);
+        mPayButton.setOnClickListener(this);
 
-        freeDayNumberPicker.setMaxValue(maxNumberPickerValue);
-        freeDayNumberPicker.setValue(0);
+        mFreeDayNumberPicker.setMaxValue(maxNumberPickerValue);
+        mFreeDayNumberPicker.setValue(0);
         calc();
         checkPayStatusAndHideElements();
-        freeDayNumberPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
+        mFreeDayNumberPicker.setOnValueChangedListener(new NumberPicker.OnValueChangeListener() {
             @Override
             public void onValueChange(NumberPicker numberPicker, int i, int i1) {
                 calc();
@@ -78,10 +81,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkPayStatusAndHideElements() {
-        if(getLastPayDate().after(Calendar.getInstance())){
-            freeDayNumberPicker.setVisibility(View.GONE);
-            payButton.setVisibility(View.GONE);
-            freeDayTextView.setVisibility(View.GONE);
+        if (getmLastPayDate().after(Calendar.getInstance())) {
+            mFreeDayNumberPicker.setVisibility(View.GONE);
+            mPayButton.setVisibility(View.GONE);
+            mFreeDayTextView.setVisibility(View.GONE);
 
         }
     }
@@ -90,11 +93,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int maxFreeDay = 0;
 
         Calendar curDate = Calendar.getInstance();
-        while (tempLastPayDate.before(curDate)) {
-            if (tempLastPayDate.get(Calendar.DAY_OF_WEEK) < 6) {
+        while (mTempLastPayDate.before(curDate)) {
+            if (mTempLastPayDate.get(Calendar.DAY_OF_WEEK) < 6) {
                 maxFreeDay++;
             }
-            tempLastPayDate.add(Calendar.DATE, 1);
+            mTempLastPayDate.add(Calendar.DATE, 1);
         }
         return maxFreeDay;
     }
@@ -102,28 +105,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private void calc() {
         int dept;
         int rate;
-        calc = new CalcDept();
-        sPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
-        rate = sPref.getInt("rate_car_pay", 20);
-        dept = calc.calculate(lastPayDate.getTimeInMillis(), freeDayNumberPicker.getValue(), rate);
-        deptTextView.setText(String.valueOf(dept));
+        mCalc = new CalcDept();
+        mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+        rate = mSPref.getInt("rate_car_pay", 20);
+        dept = mCalc.calculate(mLastPayDate.getTimeInMillis(), mFreeDayNumberPicker.getValue(), rate);
+        mDeptTextView.setText(String.valueOf(dept));
     }
 
     private void findViewsById() {
 
-        toolbar = (Toolbar) findViewById(R.id.toolbar);
-        freeDayNumberPicker = (NumberPicker) findViewById(R.id.freeDayNumberPicker);
-        deptTextView = (TextView) findViewById(R.id.deptTextView);
-        payButton = (Button) findViewById(R.id.buttonPay);
-        freeDayTextView = (TextView) findViewById(R.id.freeDayTextView);
+        mToolbar = (Toolbar) findViewById(R.id.toolbar);
+        mFreeDayNumberPicker = (NumberPicker) findViewById(R.id.freeDayNumberPicker);
+        mDeptTextView = (TextView) findViewById(R.id.deptTextView);
+        mPayButton = (Button) findViewById(R.id.buttonPay);
+        mFreeDayTextView = (TextView) findViewById(R.id.freeDayTextView);
 
     }
 
 
-    private Calendar getLastPayDate() {
+    private Calendar getmLastPayDate() {
 
         Calendar lpd = Calendar.getInstance();
-        SQLiteDatabase database = dbHelper.getWritableDatabase();
+        SQLiteDatabase database = mDBHelper.getWritableDatabase();
         Cursor cursor = database.query(DBHelper.TABLE_DATES, null, null, null, null, null, DBHelper.KEY_ID, null);
         Calendar date = Calendar.getInstance();
         if (cursor.moveToLast()) {
@@ -135,7 +138,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 date.setTimeInMillis(cursor.getLong(dateIndex));
                 if (cursor.getInt(statusIndex) == 0) {
                     lpd = date;
-                    lastPayId = cursor.getInt(idIndex);
+                    mLastPayId = cursor.getInt(idIndex);
                 } else {
                     date.add(Calendar.DATE, 1);
                     lpd = date;
@@ -153,8 +156,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     protected void onResume() {
 
         super.onResume();
-        sPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
-        boolean firstRunFlag = sPref.getBoolean(FIRST_RUN_FLAG, false);
+        mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+        boolean firstRunFlag = mSPref.getBoolean(FIRST_RUN_FLAG, false);
         // Log.e("MAIN ACT OR FLAG: ", "" + firstRunFlag);
         if (!firstRunFlag) {
             //Log.e("MAIN ACT OR FLAG: ", "" + firstRunFlag);
@@ -185,17 +188,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 //
         } else if (id == R.id.action_settings) {
-            // database.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
+            // mDatabase.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
 
         } else if (id == R.id.action_reset_all_var) {
-            sPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
-            SharedPreferences.Editor ed = sPref.edit();
+            mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+            SharedPreferences.Editor ed = mSPref.edit();
             ed.putString("rate_car_pay", null);
             ed.putBoolean(FIRST_RUN_FLAG, false);
             ed.apply();
 
         } else if (id == R.id.action_delete_from_table) {
-            database.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
+            mDatabase.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
 
         }
 
@@ -204,28 +207,28 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
     @Override
     public void onClick(View view) {
-        if (view == payButton) {
+        if (view == mPayButton) {
             ContentValues contentValues = new ContentValues();
-//            if (!getLastPayDate().after(Calendar.getInstance())) {
+//            if (!getmLastPayDate().after(Calendar.getInstance())) {
 //
-            if(!getLastPayDate().after(Calendar.getInstance())) {
-                contentValues.put(DBHelper.KEY_DATE, lastPayDate.getTimeInMillis());
+            if (!getmLastPayDate().after(Calendar.getInstance())) {
+                contentValues.put(DBHelper.KEY_DATE, mLastPayDate.getTimeInMillis());
                 contentValues.put(DBHelper.KEY_STATUS, 1);
                 //Log.e("CONTENT VALUES: ", contentValues.get(DBHelper.KEY_DATE).toString());
-                database.update(DBHelper.TABLE_DATES, contentValues, DBHelper.KEY_ID + " = " + lastPayId, null);
+                mDatabase.update(DBHelper.TABLE_DATES, contentValues, DBHelper.KEY_ID + " = " + mLastPayId, null);
 //            } else if(){
 
 
-                lastPayDate = Calendar.getInstance();
-                lastPayDate.add(Calendar.DATE, 1);
+                mLastPayDate = Calendar.getInstance();
+                mLastPayDate.add(Calendar.DATE, 1);
                 contentValues.clear();
-                contentValues.put(DBHelper.KEY_DATE, lastPayDate.getTimeInMillis());
+                contentValues.put(DBHelper.KEY_DATE, mLastPayDate.getTimeInMillis());
                 contentValues.put(DBHelper.KEY_STATUS, 0);
-                database.insert(DBHelper.TABLE_DATES, null, contentValues);
+                mDatabase.insert(DBHelper.TABLE_DATES, null, contentValues);
 
-                lastPayDate = getLastPayDate();
-                freeDayNumberPicker.setValue(0);
-                freeDayNumberPicker.setMaxValue(getMaxFreeDay());
+                mLastPayDate = getmLastPayDate();
+                mFreeDayNumberPicker.setValue(0);
+                mFreeDayNumberPicker.setMaxValue(getMaxFreeDay());
                 calc();
                 checkPayStatusAndHideElements();
             }
