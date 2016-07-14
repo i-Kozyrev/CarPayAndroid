@@ -60,8 +60,8 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
         mDBHelper = new DBHelper(this);
         mDatabase = mDBHelper.getWritableDatabase();
-        mLastPayDate = getmLastPayDate();
-        mTempLastPayDate = getmLastPayDate();
+        mLastPayDate = getLastPayDate();
+        mTempLastPayDate = getLastPayDate();
         int maxNumberPickerValue = getMaxFreeDay();
 
         mPayButton.setOnClickListener(this);
@@ -81,7 +81,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void checkPayStatusAndHideElements() {
-        if (getmLastPayDate().after(Calendar.getInstance())) {
+        if (getLastPayDate().after(Calendar.getInstance())) {
             mFreeDayNumberPicker.setVisibility(View.GONE);
             mPayButton.setVisibility(View.GONE);
             mFreeDayTextView.setVisibility(View.GONE);
@@ -123,7 +123,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
 
-    private Calendar getmLastPayDate() {
+    private Calendar getLastPayDate() {
 
         Calendar lpd = Calendar.getInstance();
         SQLiteDatabase database = mDBHelper.getWritableDatabase();
@@ -143,7 +143,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                     date.add(Calendar.DATE, 1);
                     lpd = date;
                 }
-                //Log.e("DATE", "милис: " + cursor.getLong(dateIndex) + "дата: " + date.getTime() + "id: " + cursor.getInt(idIndex));
             } while (cursor.moveToNext());
         }
         cursor.close();
@@ -158,9 +157,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         super.onResume();
         mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
         boolean firstRunFlag = mSPref.getBoolean(FIRST_RUN_FLAG, false);
-        // Log.e("MAIN ACT OR FLAG: ", "" + firstRunFlag);
         if (!firstRunFlag) {
-            //Log.e("MAIN ACT OR FLAG: ", "" + firstRunFlag);
             finish();
         }
 
@@ -181,26 +178,30 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_help) {
-//            Intent intent = new Intent(this, HelpActivity.class);
-//            startActivity(intent);
+        if (id == R.id.action_history) {
+            Intent intent = new Intent(this, PayHistoryActivity.class);
+            startActivity(intent);
 
 
 //
         } else if (id == R.id.action_settings) {
-            // mDatabase.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
-
-        } else if (id == R.id.action_reset_all_var) {
-            mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
-            SharedPreferences.Editor ed = mSPref.edit();
-            ed.putString("rate_car_pay", null);
-            ed.putBoolean(FIRST_RUN_FLAG, false);
-            ed.apply();
-
-        } else if (id == R.id.action_delete_from_table) {
-            mDatabase.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
-
+            Intent intent = new Intent(this, FirstStartAppActivity.class);
+            intent.putExtra(FirstStartAppActivity.KEY_SETTINGS_ACTION_START, true);
+            Log.e("KEY_SETTINGS in main", intent.getExtras().toString());
+            startActivity(intent);
         }
+
+//        } else if (id == R.id.action_reset_all_var) {
+//            mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+//            SharedPreferences.Editor ed = mSPref.edit();
+//            ed.putString("rate_car_pay", null);
+//            ed.putBoolean(FIRST_RUN_FLAG, false);
+//            ed.apply();
+//
+//        } else if (id == R.id.action_delete_from_table) {
+//            mDatabase.execSQL("DELETE FROM " + DBHelper.TABLE_DATES);
+//
+//        }
 
         return super.onOptionsItemSelected(item);
     }
@@ -209,11 +210,12 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     public void onClick(View view) {
         if (view == mPayButton) {
             ContentValues contentValues = new ContentValues();
-//            if (!getmLastPayDate().after(Calendar.getInstance())) {
+//            if (!getLastPayDate().after(Calendar.getInstance())) {
 //
-            if (!getmLastPayDate().after(Calendar.getInstance())) {
+            if (!getLastPayDate().after(Calendar.getInstance())) {
                 contentValues.put(DBHelper.KEY_DATE, mLastPayDate.getTimeInMillis());
                 contentValues.put(DBHelper.KEY_STATUS, 1);
+                contentValues.put(DBHelper.KEY_COST, Integer.parseInt(mDeptTextView.getText().toString()));
                 //Log.e("CONTENT VALUES: ", contentValues.get(DBHelper.KEY_DATE).toString());
                 mDatabase.update(DBHelper.TABLE_DATES, contentValues, DBHelper.KEY_ID + " = " + mLastPayId, null);
 //            } else if(){
@@ -226,7 +228,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                 contentValues.put(DBHelper.KEY_STATUS, 0);
                 mDatabase.insert(DBHelper.TABLE_DATES, null, contentValues);
 
-                mLastPayDate = getmLastPayDate();
+                mLastPayDate = getLastPayDate();
                 mFreeDayNumberPicker.setValue(0);
                 mFreeDayNumberPicker.setMaxValue(getMaxFreeDay());
                 calc();

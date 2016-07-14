@@ -19,7 +19,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".HelpActivity" />
-        <activity android:name=".FirstStartAppActivity"></activity>
+        <activity android:name=".FirstStartAppActivity" />
+        <activity android:name=".PayHistoryActivity"/>
     </application>
 
 </manifest>

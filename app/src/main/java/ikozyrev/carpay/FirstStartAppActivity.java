@@ -23,26 +23,39 @@ public class FirstStartAppActivity extends AppCompatActivity implements View.OnC
 
     public static final String RATE = "rate_car_pay";
     public static final String FIRST_RUN_FLAG = "car_pay_first_run_flag";
-
+    public static final String KEY_SETTINGS_ACTION_START = "flag_setting_action";
     DBHelper mDBHelper;
     SharedPreferences mSPref;
     TextView mDatePickerTextView;
     EditText mRatePickerEditText;
+    TextView mStartActivityTitle;
     Button mSaveButton;
+
+    boolean mKeySettingsStartActivity;
     private DatePickerDialog mDatePickerDialog;
     private SimpleDateFormat mDateFormatter;
+    private TextView mFirstDateTextView;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_first_start_app);
 
-        mDateFormatter = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+
         findViewsById();
         setOnClickListeners();
-        setDateTimeField();
 
 
+        mKeySettingsStartActivity = getIntent().getBooleanExtra(KEY_SETTINGS_ACTION_START, false);
+        Log.e("KEY_SETTINGS in main", String.valueOf(mKeySettingsStartActivity));
+        if (mKeySettingsStartActivity) {
+
+            mDatePickerTextView.setVisibility(View.GONE);
+            mFirstDateTextView.setVisibility(View.GONE);
+            mStartActivityTitle.setText("Настройки");
+        } else {
+            setDateTimeField();
+        }
         mDBHelper = new DBHelper(this);
     }
 
@@ -56,6 +69,8 @@ public class FirstStartAppActivity extends AppCompatActivity implements View.OnC
         mRatePickerEditText = (EditText) findViewById(R.id.ratePIckerEditText);
         mSaveButton = (Button) findViewById(R.id.firstStartAppSaveButton);
         mDateFormatter = new SimpleDateFormat("dd-MM-yyyy", Locale.US);
+        mStartActivityTitle = (TextView) findViewById(R.id.startActivityTitle);
+        mFirstDateTextView = (TextView) findViewById(R.id.firstDateTxtView);
     }
 
     private void setDateTimeField() {
@@ -86,19 +101,33 @@ public class FirstStartAppActivity extends AppCompatActivity implements View.OnC
         if (view == mDatePickerTextView)
             mDatePickerDialog.show();
         else if (view == mSaveButton) {
-            if (mRatePickerEditText.getText().length() != 0 && mDatePickerTextView.getText().length() != 0) {
-                mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
-                SharedPreferences.Editor ed = mSPref.edit();
-                ed.putInt(RATE, Integer.parseInt(mRatePickerEditText.getText().toString()));
-                ed.putBoolean(FIRST_RUN_FLAG, true);
+            if (mKeySettingsStartActivity) {
+                if (mRatePickerEditText.getText().length() != 0){
+                    mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+                    SharedPreferences.Editor ed = mSPref.edit();
+                    ed.putInt(RATE, Integer.parseInt(mRatePickerEditText.getText().toString()));
+                    ed.putBoolean(FIRST_RUN_FLAG, true);
 
-                ed.commit();
-                Log.e("PREV SAVE: ", "" + mSPref.getBoolean(FIRST_RUN_FLAG, false));
-                startActivity(new Intent(this, MainActivity.class));
-                this.finish();
+                    ed.commit();
+                    Log.e("PREV SAVE: ", "" + mSPref.getBoolean(FIRST_RUN_FLAG, false));
+                    startActivity(new Intent(this, MainActivity.class));
+                    this.finish();
+                }
             } else {
-                Toast.makeText(getApplicationContext(), "Не все поля заполнены", Toast.LENGTH_LONG).show();
+                if (mRatePickerEditText.getText().length() != 0 && mDatePickerTextView.getText().length() != 0) {
+                    mSPref = getSharedPreferences("carPayPref", MODE_PRIVATE);
+                    SharedPreferences.Editor ed = mSPref.edit();
+                    ed.putInt(RATE, Integer.parseInt(mRatePickerEditText.getText().toString()));
+                    ed.putBoolean(FIRST_RUN_FLAG, true);
 
+                    ed.commit();
+                    Log.e("PREV SAVE: ", "" + mSPref.getBoolean(FIRST_RUN_FLAG, false));
+                    startActivity(new Intent(this, MainActivity.class));
+                    this.finish();
+                } else {
+                    Toast.makeText(getApplicationContext(), "Не все поля заполнены", Toast.LENGTH_LONG).show();
+
+                }
             }
         }
     }
